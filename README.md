@@ -4,7 +4,9 @@ A native macOS app that displays full-screen notifications triggered by URL sche
 
 ## Supported URLs
 
-- `unignorable://confetti` - Full-screen confetti celebration animation
+- `unignorable://confetti` - Full-screen confetti celebration animation  
+
+https://github.com/user-attachments/assets/64495a42-1321-475f-8703-e832fc72e722
 
 ## How to Trigger
 
@@ -56,16 +58,24 @@ Or notify when tasks complete:
 }
 ```
 
+## Architecture
+
+Unignorable is designed to be lightweight and ephemeral:
+
+- **Single-window overlay**: Creates a full-screen transparent window on top of all other applications
+- **On-demand execution**: App only runs when triggered by a URL scheme
+- **Auto-termination**: Immediately quits after the notification animation completes (~3 seconds)
+- **No persistent UI**: No dock icon, no menu bar, no background processes
+
+This design ensures the app has zero overhead when not in use and provides truly unignorable notifications when needed.
+
 ## Installation
 
 1. Open `Unignorable.xcodeproj` in Xcode
-2. Add URL Type in **Project > Target > Info > URL Types**:
-   - URL Schemes: `unignorable`
-   - Identifier: `com.unignorable.urlscheme`
-3. Build and run (⌘B then ⌘R)
-4. App is now ready to receive notifications
+2. Build and run (⌘R)
+3. App is now ready to receive notifications
 
-See [SETUP.md](SETUP.md) for detailed instructions.
+That's it! The URL scheme is already configured in the project.
 
 ## Use Cases
 
