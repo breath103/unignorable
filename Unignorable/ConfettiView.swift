@@ -55,6 +55,11 @@ struct ConfettiView: View {
                     onComplete()
                 }
             }
+            .onKeyPress(.escape) {
+                onComplete()
+                return .handled
+            }
+            .focusable()
         }
     }
 
