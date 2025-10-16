@@ -12,14 +12,17 @@ struct ConfettiView: View {
     let onComplete: () -> Void
 
     @State private var confettiPieces: [ConfettiPiece] = []
+    @State private var backdropOpacity: Double = 0.0
     private let confettiCount = 150
     private let duration: Double = 3.0
+    private let fadeInDuration: Double = 0.3
+    private let fadeOutDuration: Double = 0.3
 
     var body: some View {
         GeometryReader { geometry in
             ZStack {
-                // Semi-transparent background
-                Color.black.opacity(0.3)
+                // Semi-transparent background with fade animation
+                Color.black.opacity(backdropOpacity * 0.3)
                     .ignoresSafeArea()
 
                 // Confetti pieces
@@ -36,7 +39,18 @@ struct ConfettiView: View {
                 animateConfetti()
                 playSound()
 
-                // Auto-dismiss after duration
+                // Fade in backdrop
+                withAnimation(.easeIn(duration: fadeInDuration)) {
+                    backdropOpacity = 1.0
+                }
+
+                // Auto-dismiss after duration with fade out
+                DispatchQueue.main.asyncAfter(deadline: .now() + duration - fadeOutDuration) {
+                    withAnimation(.easeOut(duration: fadeOutDuration)) {
+                        backdropOpacity = 0.0
+                    }
+                }
+
                 DispatchQueue.main.asyncAfter(deadline: .now() + duration) {
                     onComplete()
                 }
