@@ -23,6 +23,9 @@ class NotificationWindow: NSWindow {
         case .confetti:
             let confettiView = ConfettiView(onComplete: onComplete)
             self.contentView = NSHostingView(rootView: confettiView)
+        case .sunrise:
+            let sunriseView = SunriseView(onComplete: onComplete)
+            self.contentView = NSHostingView(rootView: sunriseView)
         }
 
         self.makeKeyAndOrderFront(nil)
