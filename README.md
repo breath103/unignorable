@@ -37,23 +37,22 @@ subprocess.run(['open', 'unignorable://confetti'])
 
 ## Using with Claude Code
 
-Add this to your Claude Code settings to get notified when Claude needs your input:
+Add this to your Claude Code settings to get confetti when Claude finishes responding:
 
 **~/.claude/settings.json:**
 ```json
 {
   "hooks": {
-    "userPromptSubmit": "open 'unignorable://confetti' &"
-  }
-}
-```
-
-Or notify when tasks complete:
-
-```json
-{
-  "hooks": {
-    "afterToolCall": "open 'unignorable://confetti' &"
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "open 'unignorable://confetti' &"
+          }
+        ]
+      }
+    ]
   }
 }
 ```
