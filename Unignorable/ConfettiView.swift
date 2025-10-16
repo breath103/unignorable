@@ -1,10 +1,3 @@
-//
-//  ConfettiView.swift
-//  Unignorable
-//
-//  Created by Kurt Lee on 2025-10-16.
-//
-
 import SwiftUI
 import AppKit
 
@@ -55,11 +48,11 @@ struct ConfettiView: View {
                     onComplete()
                 }
             }
+            .focusable()
             .onKeyPress(.escape) {
                 onComplete()
                 return .handled
             }
-            .focusable()
         }
     }
 

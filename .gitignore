@@ -35,3 +35,5 @@ Carthage/Build/
 # Accio
 Dependencies/
 .accio/
+
+.claude/

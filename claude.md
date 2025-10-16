@@ -5,6 +5,7 @@ A native macOS app that displays full-screen notifications triggered by URL sche
 ## Development Guidelines
 
 - **NO Claude attribution**: Do not add "Generated with Claude Code" or "Co-Authored-By: Claude" in commits or PRs
+- **NO file headers**: Do not add file header comments (e.g., `// Created by...`, `// Filename.swift`, etc.)
 - Keep commit messages clean and professional
 
 ## Overview

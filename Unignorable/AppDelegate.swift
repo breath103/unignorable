@@ -1,19 +1,20 @@
-//
-//  AppDelegate.swift
-//  Unignorable
-//
-//  Created by Kurt Lee on 2025-10-16.
-//
-
 import Cocoa
 import SwiftUI
 
 class AppDelegate: NSObject, NSApplicationDelegate {
-    var notificationWindow: NSWindow?
+    private var notificationWindow: NSWindow?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         // Hide the app from appearing in dock briefly
         NSApp.setActivationPolicy(.accessory)
+
+        // Check for launch arguments (for debugging)
+        let arguments = CommandLine.arguments
+        if let typeIndex = arguments.firstIndex(of: "-t"),
+           typeIndex + 1 < arguments.count,
+           let notificationType = NotificationType(rawValue: arguments[typeIndex + 1]) {
+            showNotification(type: notificationType)
+        }
     }
 
     // Handle URLs when app is launched or already running
@@ -28,50 +29,20 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     func handleURL(_ url: URL) {
         // Parse the URL scheme
-        if url.scheme == "unignorable" {
-            let notificationType = url.host() ?? ""
-            showNotification(type: notificationType)
-        } else {
+        guard url.scheme == "unignorable",
+              let host = url.host(),
+              let notificationType = NotificationType(rawValue: host) else {
             NSApp.terminate(nil)
+            return
         }
+
+        showNotification(type: notificationType)
     }
 
-    func showNotification(type: String) {
-        switch type {
-        case "confetti":
-            showConfetti()
-        default:
+    func showNotification(type: NotificationType) {
+        let window = NotificationWindow(type: type) {
             NSApp.terminate(nil)
         }
-    }
-
-    func showConfetti() {
-        // Create a full-screen transparent window
-        let screen = NSScreen.main ?? NSScreen.screens[0]
-        let window = NSWindow(
-            contentRect: screen.frame,
-            styleMask: [.borderless],
-            backing: .buffered,
-            defer: false,
-            screen: screen
-        )
-
-        window.level = .floating
-        window.backgroundColor = .clear
-        window.isOpaque = false
-        window.ignoresMouseEvents = false
-        window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
-
-        let confettiView = ConfettiView {
-            // Called when animation completes
-            window.close()
-            NSApp.terminate(nil)
-        }
-
-        window.contentView = NSHostingView(rootView: confettiView)
-        window.makeKeyAndOrderFront(nil)
-        NSApp.activate(ignoringOtherApps: true)
-
         self.notificationWindow = window
     }
 

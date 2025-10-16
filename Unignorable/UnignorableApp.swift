@@ -1,10 +1,3 @@
-//
-//  UnignorableApp.swift
-//  Unignorable
-//
-//  Created by Kurt Lee on 2025-10-16.
-//
-
 import SwiftUI
 
 @main
