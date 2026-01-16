@@ -5,8 +5,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var notificationWindow: NSWindow?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        // Hide the app from appearing in dock briefly
-        NSApp.setActivationPolicy(.accessory)
+        // Disable window restoration
+        NSWindow.allowsAutomaticWindowTabbing = false
+        UserDefaults.standard.set(false, forKey: "NSQuitAlwaysKeepsWindows")
 
         // Check for launch arguments (for debugging)
         let arguments = CommandLine.arguments
@@ -19,20 +20,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     // Handle URLs when app is launched or already running
     func application(_ application: NSApplication, open urls: [URL]) {
-        guard let url = urls.first else {
-            NSApp.terminate(nil)
-            return
-        }
-
+        guard let url = urls.first else { return }
         handleURL(url)
     }
 
     func handleURL(_ url: URL) {
-        // Parse the URL scheme
-        guard url.scheme == "unignorable",
+        guard url.scheme == "unignorable" || url.scheme == "unignorable-debug",
               let host = url.host(),
               let notificationType = NotificationType(rawValue: host) else {
-            NSApp.terminate(nil)
             return
         }
 
@@ -40,13 +35,56 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func showNotification(type: NotificationType) {
-        let window = NotificationWindow(type: type) {
-            NSApp.terminate(nil)
+        notificationWindow?.close()
+        notificationWindow = nil
+
+        let window = NotificationWindow(type: type) { [weak self] in
+            self?.notificationWindow?.close()
+            self?.notificationWindow = nil
         }
         self.notificationWindow = window
     }
 
+    func applicationDockMenu(_ sender: NSApplication) -> NSMenu? {
+        let menu = NSMenu()
+
+        let confettiItem = NSMenuItem(title: "Confetti", action: #selector(triggerConfetti), keyEquivalent: "")
+        confettiItem.target = self
+        menu.addItem(confettiItem)
+
+        let sunriseItem = NSMenuItem(title: "Sunrise", action: #selector(triggerSunrise), keyEquivalent: "")
+        sunriseItem.target = self
+        menu.addItem(sunriseItem)
+
+        return menu
+    }
+
+    @objc func triggerConfetti() {
+        showNotification(type: .confetti)
+    }
+
+    @objc func triggerSunrise() {
+        showNotification(type: .sunrise)
+    }
+
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
-        return true
+        return false
+    }
+
+    func applicationSupportsSecureRestorableState(_ app: NSApplication) -> Bool {
+        return false
+    }
+
+    func applicationWillTerminate(_ notification: Notification) {
+        notificationWindow?.close()
+        notificationWindow = nil
+    }
+
+    func application(_ application: NSApplication, willEncodeRestorableState coder: NSCoder) {
+        // Don't encode anything
+    }
+
+    func application(_ application: NSApplication, didDecodeRestorableState coder: NSCoder) {
+        // Don't restore anything
     }
 }

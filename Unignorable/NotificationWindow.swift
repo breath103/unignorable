@@ -2,6 +2,8 @@ import Cocoa
 import SwiftUI
 
 class NotificationWindow: NSWindow {
+    private var onComplete: (() -> Void)?
+
     convenience init(type: NotificationType, onComplete: @escaping () -> Void) {
         let screen = NSScreen.main ?? NSScreen.screens[0]
 
@@ -18,13 +20,18 @@ class NotificationWindow: NSWindow {
         self.isOpaque = false
         self.ignoresMouseEvents = false
         self.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+        self.isRestorable = false
 
         switch type {
         case .confetti:
             let confettiView = ConfettiView(onComplete: onComplete)
             self.contentView = NSHostingView(rootView: confettiView)
+        case .sunrise:
+            let sunriseView = SunriseView(onComplete: onComplete)
+            self.contentView = NSHostingView(rootView: sunriseView)
         }
 
+        self.onComplete = onComplete
         self.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
     }
@@ -35,5 +42,17 @@ class NotificationWindow: NSWindow {
 
     override var canBecomeMain: Bool {
         true
+    }
+
+    override func mouseDown(with event: NSEvent) {
+        onComplete?()
+    }
+
+    override func keyDown(with event: NSEvent) {
+        if event.keyCode == 53 {
+            onComplete?()
+        } else {
+            super.keyDown(with: event)
+        }
     }
 }

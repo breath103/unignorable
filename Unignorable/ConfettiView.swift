@@ -1,43 +1,25 @@
 import SwiftUI
 import AppKit
+import QuartzCore
 
 struct ConfettiView: View {
     let onComplete: () -> Void
 
-    @State private var confettiPieces: [ConfettiPiece] = []
     @State private var backdropOpacity: Double = 0.0
-    private let confettiCount = 150
     private let duration: Double = 3.0
     private let fadeInDuration: Double = 0.3
     private let fadeOutDuration: Double = 0.3
 
     var body: some View {
-        GeometryReader { geometry in
-            ZStack {
-                // Semi-transparent background with fade animation
-                Color.black.opacity(backdropOpacity * 0.3)
-                    .ignoresSafeArea()
-
-                // Confetti pieces
-                ForEach(confettiPieces) { piece in
-                    ConfettiShape(piece: piece)
-                        .frame(width: piece.size, height: piece.size)
-                        .foregroundColor(piece.color)
-                        .position(piece.position)
-                        .rotationEffect(.degrees(piece.rotation))
-                }
-            }
+        ConfettiEmitterView(backdropOpacity: $backdropOpacity, onTap: onComplete)
+            .ignoresSafeArea()
             .onAppear {
-                generateConfetti(in: geometry.size)
-                animateConfetti()
                 playSound()
 
-                // Fade in backdrop
                 withAnimation(.easeIn(duration: fadeInDuration)) {
                     backdropOpacity = 1.0
                 }
 
-                // Auto-dismiss after duration with fade out
                 DispatchQueue.main.asyncAfter(deadline: .now() + duration - fadeOutDuration) {
                     withAnimation(.easeOut(duration: fadeOutDuration)) {
                         backdropOpacity = 0.0
@@ -48,75 +30,163 @@ struct ConfettiView: View {
                     onComplete()
                 }
             }
-            .focusable()
-            .onKeyPress(.escape) {
-                onComplete()
-                return .handled
-            }
-        }
-    }
-
-    private func generateConfetti(in size: CGSize) {
-        let colors: [Color] = [.red, .blue, .green, .yellow, .orange, .pink, .purple]
-
-        confettiPieces = (0..<confettiCount).map { _ in
-            ConfettiPiece(
-                id: UUID(),
-                position: CGPoint(x: CGFloat.random(in: 0...size.width), y: -50),
-                targetY: size.height + 100,
-                size: CGFloat.random(in: 8...16),
-                color: colors.randomElement() ?? .red,
-                rotation: 0,
-                targetRotation: Double.random(in: -720...720)
-            )
-        }
-    }
-
-    private func animateConfetti() {
-        for i in 0..<confettiPieces.count {
-            let delay = Double.random(in: 0...0.5)
-            let duration = Double.random(in: 2.0...3.5)
-
-            withAnimation(
-                .easeIn(duration: duration)
-                .delay(delay)
-            ) {
-                confettiPieces[i].position.y = confettiPieces[i].targetY
-            }
-
-            withAnimation(
-                .linear(duration: duration)
-                .repeatForever(autoreverses: false)
-                .delay(delay)
-            ) {
-                confettiPieces[i].rotation = confettiPieces[i].targetRotation
-            }
-        }
     }
 
     private func playSound() {
-        // Play a celebratory system sound
         if let sound = NSSound(named: "Funk") {
             sound.play()
         }
     }
 }
 
-struct ConfettiPiece: Identifiable {
-    let id: UUID
-    var position: CGPoint
-    let targetY: CGFloat
-    let size: CGFloat
-    let color: Color
-    var rotation: Double
-    let targetRotation: Double
+class ConfettiNSView: NSView {
+    private var emitterLayer: CAEmitterLayer?
+    private var backdropLayer: CALayer?
+    private var hasStarted = false
+    var onTap: (() -> Void)?
+    var backdropOpacity: Double = 0 {
+        didSet {
+            backdropLayer?.opacity = Float(backdropOpacity * 0.3)
+        }
+    }
+
+    override init(frame frameRect: NSRect) {
+        super.init(frame: frameRect)
+        wantsLayer = true
+    }
+
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        wantsLayer = true
+    }
+
+    override func layout() {
+        super.layout()
+
+        guard bounds.width > 0, bounds.height > 0 else { return }
+
+        backdropLayer?.frame = bounds
+
+        if let emitter = emitterLayer {
+            emitter.frame = bounds
+            emitter.emitterPosition = CGPoint(x: bounds.midX, y: bounds.midY)
+        }
+
+        if !hasStarted {
+            hasStarted = true
+            setupBackdrop()
+            // Wait for backdrop to fade in first
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                self.setupEmitter()
+            }
+        }
+    }
+
+    private func setupBackdrop() {
+        let backdrop = CALayer()
+        backdrop.frame = bounds
+        backdrop.backgroundColor = NSColor.black.cgColor
+        backdrop.opacity = 0
+        layer?.addSublayer(backdrop)
+        self.backdropLayer = backdrop
+    }
+
+    override func mouseDown(with event: NSEvent) {
+        onTap?()
+    }
+
+    override func keyDown(with event: NSEvent) {
+        if event.keyCode == 53 {
+            onTap?()
+        } else {
+            super.keyDown(with: event)
+        }
+    }
+
+    override var acceptsFirstResponder: Bool { true }
+
+    private func setupEmitter() {
+        let emitterLayer = CAEmitterLayer()
+        emitterLayer.frame = bounds
+        emitterLayer.emitterPosition = CGPoint(x: bounds.midX, y: bounds.midY)
+        emitterLayer.emitterShape = .point
+        emitterLayer.renderMode = .oldestFirst
+
+        let colors: [NSColor] = [
+            .systemRed, .systemBlue, .systemGreen, .systemYellow,
+            .systemOrange, .systemPink, .systemPurple, .cyan
+        ]
+
+        var cells: [CAEmitterCell] = []
+        for color in colors {
+            cells.append(makeConfettiCell(color: color, isRect: true))
+            cells.append(makeConfettiCell(color: color, isRect: false))
+        }
+
+        emitterLayer.emitterCells = cells
+        layer?.addSublayer(emitterLayer)
+        self.emitterLayer = emitterLayer
+
+        // Instant burst
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.02) {
+            emitterLayer.birthRate = 0
+        }
+    }
+
+    private func makeConfettiCell(color: NSColor, isRect: Bool) -> CAEmitterCell {
+        let cell = CAEmitterCell()
+
+        let size: CGFloat = 12
+        let image = NSImage(size: NSSize(width: size, height: size), flipped: false) { rect in
+            color.setFill()
+            if isRect {
+                NSBezierPath(rect: CGRect(x: 2, y: 0, width: size - 4, height: size)).fill()
+            } else {
+                NSBezierPath(ovalIn: CGRect(x: 2, y: 2, width: size - 4, height: size - 4)).fill()
+            }
+            return true
+        }
+
+        var imageRect = CGRect(origin: .zero, size: image.size)
+        if let cgImage = image.cgImage(forProposedRect: &imageRect, context: nil, hints: nil) {
+            cell.contents = cgImage
+        }
+
+        cell.birthRate = 800
+        cell.lifetime = 2.5
+        cell.lifetimeRange = 0.5
+
+        cell.velocity = 900
+        cell.velocityRange = 300
+        cell.emissionRange = .pi * 2
+
+        // Negative = gravity pulls DOWN
+        cell.yAcceleration = -600
+
+        cell.scale = 1.0
+        cell.scaleRange = 0.4
+
+        cell.spin = 3
+        cell.spinRange = 6
+
+        cell.alphaSpeed = -0.3
+
+        return cell
+    }
 }
 
-struct ConfettiShape: View {
-    let piece: ConfettiPiece
+struct ConfettiEmitterView: NSViewRepresentable {
+    @Binding var backdropOpacity: Double
+    let onTap: () -> Void
 
-    var body: some View {
-        RoundedRectangle(cornerRadius: 2)
+    func makeNSView(context: Context) -> ConfettiNSView {
+        let view = ConfettiNSView()
+        view.onTap = onTap
+        return view
+    }
+
+    func updateNSView(_ nsView: ConfettiNSView, context: Context) {
+        nsView.backdropOpacity = backdropOpacity
     }
 }
 
