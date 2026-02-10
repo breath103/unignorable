@@ -1,41 +1,36 @@
 # Unignorable
 
-A native macOS app that displays full-screen notifications triggered by URL schemes. Perfect for getting your attention when long-running tasks complete.
+A native macOS app that displays full-screen notifications triggered by URL schemes. Perfect for getting your attention when long-running tasks complete. It obviously ignores Focus Mode or similar setups.
 
-## Supported URLs
+https://github.com/user-attachments/assets/0e66b351-2cbe-4b29-8a88-d1d56f4e7f2f
 
-- `unignorable://confetti` - Full-screen confetti celebration animation  
+## Quick Start
 
-https://github.com/user-attachments/assets/64495a42-1321-475f-8703-e832fc72e722
+### Install
 
-## How to Trigger
+Download `Unignorable.zip` from the [latest release](https://github.com/breath103/unignorable/releases/latest), unzip, and move `Unignorable.app` to `/Applications`.
 
-From Terminal or any script:
+Since the app is not notarized, macOS will block it on first launch. To allow it:
+1. Right-click `Unignorable.app` → **Open**
+2. Click **Open** in the dialog that appears
+
+You only need to do this once. After that, URL scheme triggers will work normally.
+
+Or build from source:
+```bash
+xcodebuild -scheme Unignorable -configuration Release \
+  CODE_SIGN_IDENTITY="-" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO \
+  URL_SCHEME=unignorable -derivedDataPath build
+cp -R build/Build/Products/Release/Unignorable.app /Applications/
+```
+
+### Trigger
 
 ```bash
 open "unignorable://confetti"
 ```
 
-From code:
-
-```swift
-// Swift
-NSWorkspace.shared.open(URL(string: "unignorable://confetti")!)
-```
-
-```javascript
-// Node.js
-const { exec } = require('child_process');
-exec('open "unignorable://confetti"');
-```
-
-```python
-# Python
-import subprocess
-subprocess.run(['open', 'unignorable://confetti'])
-```
-
-## Using with Claude Code
+### Claude Code Setup
 
 Add this to your Claude Code settings to get confetti when Claude finishes responding:
 
@@ -57,6 +52,15 @@ Add this to your Claude Code settings to get confetti when Claude finishes respo
 }
 ```
 
+
+## Features
+
+- `unignorable://confetti` - Full-screen confetti celebration animation
+- `unignorable://sunrise` - Sunrise notification animation
+
+
+----
+
 ## Architecture
 
 Unignorable is designed to be lightweight and ephemeral:
@@ -67,22 +71,6 @@ Unignorable is designed to be lightweight and ephemeral:
 - **No persistent UI**: No dock icon, no menu bar, no background processes
 
 This design ensures the app has zero overhead when not in use and provides truly unignorable notifications when needed.
-
-## Installation
-
-1. Open `Unignorable.xcodeproj` in Xcode
-2. Build and run (⌘R)
-3. App is now ready to receive notifications
-
-That's it! The URL scheme is already configured in the project.
-
-## Use Cases
-
-- Get notified when CI/CD pipelines complete
-- Alert when long build processes finish
-- Celebrate when tests pass
-- Get attention when AI assistants need input
-- Any automation that needs to break through focus mode
 
 ## License
 
