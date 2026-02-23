@@ -8,20 +8,9 @@ https://github.com/user-attachments/assets/0e66b351-2cbe-4b29-8a88-d1d56f4e7f2f
 
 ### Install
 
-Download `Unignorable.zip` from the [latest release](https://github.com/breath103/unignorable/releases/latest), unzip, and move `Unignorable.app` to `/Applications`.
-
-Since the app is not notarized, macOS will block it on first launch. To allow it:
-1. Right-click `Unignorable.app` → **Open**
-2. Click **Open** in the dialog that appears
-
-You only need to do this once. After that, URL scheme triggers will work normally.
-
-Or build from source:
 ```bash
-xcodebuild -scheme Unignorable -configuration Release \
-  CODE_SIGN_IDENTITY="-" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO \
-  URL_SCHEME=unignorable -derivedDataPath build
-cp -R build/Build/Products/Release/Unignorable.app /Applications/
+curl -sL https://github.com/breath103/unignorable/releases/latest/download/Unignorable.zip -o /tmp/Unignorable.zip
+unzip -o /tmp/Unignorable.zip -d /Applications && xattr -cr /Applications/Unignorable.app
 ```
 
 ### Trigger
