@@ -76,8 +76,8 @@ class ConfettiNSView: NSView {
             hasStarted = true
             setupBackdrop()
             // Wait for backdrop to fade in first
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                self.setupEmitter()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
+                self?.setupEmitter()
             }
         }
     }
