@@ -21,6 +21,7 @@ class NotificationWindow: NSWindow {
         self.ignoresMouseEvents = false
         self.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         self.isRestorable = false
+        self.isReleasedWhenClosed = false
 
         switch type {
         case .confetti:

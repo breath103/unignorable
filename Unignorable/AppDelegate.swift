@@ -5,11 +5,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var notificationWindow: NSWindow?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        // Disable window restoration
         NSWindow.allowsAutomaticWindowTabbing = false
         UserDefaults.standard.set(false, forKey: "NSQuitAlwaysKeepsWindows")
 
-        // Check for launch arguments (for debugging)
         let arguments = CommandLine.arguments
         if let typeIndex = arguments.firstIndex(of: "-t"),
            typeIndex + 1 < arguments.count,
@@ -18,7 +16,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    // Handle URLs when app is launched or already running
     func application(_ application: NSApplication, open urls: [URL]) {
         guard let url = urls.first else { return }
         handleURL(url)
@@ -80,11 +77,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         notificationWindow = nil
     }
 
-    func application(_ application: NSApplication, willEncodeRestorableState coder: NSCoder) {
-        // Don't encode anything
-    }
+    func application(_ application: NSApplication, willEncodeRestorableState coder: NSCoder) {}
 
-    func application(_ application: NSApplication, didDecodeRestorableState coder: NSCoder) {
-        // Don't restore anything
-    }
+    func application(_ application: NSApplication, didDecodeRestorableState coder: NSCoder) {}
 }
